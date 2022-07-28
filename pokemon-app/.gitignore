@@ -36,3 +36,6 @@ lerna-debug.log*
 
 # MongoDB docker volume
 mongo
+
+# .env file
+.env

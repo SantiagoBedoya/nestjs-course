@@ -4,18 +4,24 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, isValidObjectId } from 'mongoose';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { Pokemon } from './entities/pokemon.entity';
 
 @Injectable()
 export class PokemonService {
+  private readonly defaultLimit: number;
   constructor(
     @InjectModel(Pokemon.name)
     private readonly pokemonModel: Model<Pokemon>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.defaultLimit = this.configService.get<number>('DEFAULT_LIMIT');
+  }
   async create(createPokemonDto: CreatePokemonDto) {
     try {
       const pokemon = await this.pokemonModel.create(createPokemonDto);
@@ -25,8 +31,9 @@ export class PokemonService {
     }
   }
 
-  async findAll() {
-    const pokemons = await this.pokemonModel.find();
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = this.defaultLimit, offset = 10 } = paginationDto;
+    const pokemons = await this.pokemonModel.find().limit(limit).skip(offset);
     return pokemons;
   }
 
@@ -67,6 +74,11 @@ export class PokemonService {
       throw new NotFoundException(`pokemon with id ${id} not found`);
     }
     return;
+  }
+
+  async createMany(createPokemonDto: CreatePokemonDto[]) {
+    const result = await this.pokemonModel.insertMany(createPokemonDto);
+    return result;
   }
 
   private handleExceptions(error: any) {

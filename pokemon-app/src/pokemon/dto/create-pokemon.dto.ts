@@ -8,5 +8,5 @@ export class CreatePokemonDto {
   @IsInt()
   @IsPositive()
   @Min(1)
-  readonly no: string;
+  readonly no: number;
 }
