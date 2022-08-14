@@ -1,0 +1,30 @@
+version: '3'
+services:
+  auth_db:
+    container_name: auth_db
+    image: postgres:alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: accounts
+      POSTGRES_PASSWORD: root
+  auth_service:
+    build:
+      context: .
+    container_name: auth_service
+    restart: always
+    environment:
+      PORT: 3000
+      DB_HOST: auth_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: root
+      DB_NAME: accounts
+      JWT_SECRET: superSecret123
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth_db
+    links:
+      - auth_db
